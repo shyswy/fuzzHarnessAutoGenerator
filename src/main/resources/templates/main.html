@@ -1,0 +1,59 @@
+<!-- example.html -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Fuzz Harness Generator</title>
+</head>
+<body>
+
+<form action="/submit" method="post">
+    <label for="program">Program:</label>
+    <input type="text" id="program" name="program" required>
+    <br>
+    <label for="method">Method:</label>
+    <input type="text" id="method" name="method" required>
+    <br>
+    <label for="version">Version:</label>
+    <input type="text" id="version" name="version" required>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+
+<div th:if="${result}">
+    <h2>Result:</h2>
+    <pre th:text="${result}"></pre>
+</div>
+
+</body>
+</html>
+
+
+<!--&lt;!&ndash; example.html &ndash;&gt;-->
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Example Page</title>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<form action="/submit" method="post">-->
+<!--    <label for="program">Program:</label>-->
+<!--    <input type="text" id="program" name="program" required>-->
+<!--    <br>-->
+<!--    <label for="method">Method:</label>-->
+<!--    <input type="text" id="method" name="method" required>-->
+<!--    <br>-->
+<!--    <button type="submit">Submit</button>-->
+<!--</form>-->
+
+<!--<div th:if="${result}">-->
+<!--    <h2>Result:</h2>-->
+<!--    <p th:text="${result}"></p>-->
+<!--</div>-->
+
+<!--</body>-->
+<!--</html>-->
