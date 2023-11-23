@@ -70,6 +70,60 @@ public class GenerateService {
                                 JsonNode jsonNode = objectMapper.readTree(responseBody);
                                 String generatedText = jsonNode.get("choices").get(0).get("text").asText();
                                // log.info("shyswy===\n" + generatedText);
+                                log.info(generatedText);
+                                return Mono.just(GenerateResponse.builder().harness(generatedText).build());
+                            } catch (IOException e) {
+                                log.error("Error reading response body", e);
+                                return Mono.error(new RuntimeException("Error reading response body", e));
+                            }
+                        })
+                        .onErrorResume(WebClientResponseException.TooManyRequests.class, e ->
+                                Mono.delay(Duration.ofSeconds(1))
+                                        .then(Mono.error(new RuntimeException("Too Many Requests")))
+                        );
+            } catch (IOException e) {
+                log.error("Error reading prompt file", e);
+                return Mono.error(new RuntimeException("Error reading prompt file", e));
+            }
+        });
+    }
+
+    public Mono<GenerateResponse> generateFixText(String errorHarness, String errorMessage, float temperature, int maxTokens) {
+        return Mono.defer(() -> {
+            try {
+
+                Path fixPromptFilePath = Paths.get("src/main/resources/fixPrompt.txt");
+                String fixPrompt = Files.readString(fixPromptFilePath);
+                fixPrompt = fixPrompt.replace("[Error Harness]", errorHarness)
+                        .replace("[Build Error Message]", errorMessage);
+
+                log.info("fixPrompt = \n {}", fixPrompt);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "Bearer " + API_KEY);
+
+                WebClient client = WebClient.create();
+
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("model", "text-davinci-003");
+                requestBody.put("prompt", fixPrompt);
+                requestBody.put("temperature", temperature);
+                requestBody.put("max_tokens", maxTokens);
+
+                return client.post()
+                        .uri(ENDPOINT)
+                        .headers(httpHeaders -> httpHeaders.addAll(headers))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(BodyInserters.fromValue(requestBody))
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .flatMap(responseBody -> {
+                            try {
+                                ObjectMapper objectMapper = new ObjectMapper();
+                                JsonNode jsonNode = objectMapper.readTree(responseBody);
+                                String generatedText = jsonNode.get("choices").get(0).get("text").asText();
+                                // log.info("shyswy===\n" + generatedText);
                                 return Mono.just(GenerateResponse.builder().harness(generatedText).build());
                             } catch (IOException e) {
                                 log.error("Error reading response body", e);
