@@ -53,4 +53,21 @@ public class fuzzController {
                 .onErrorResume(e -> Mono.just("error")); // Handle errors if necessary
     }
 
+    @PostMapping("/submit-fix")
+    public Mono<String> submitFixForm(
+            @RequestParam("errorHarness") String errorHarness,
+            @RequestParam("errorMessage") String errorMessage,
+            Model model
+    ) {
+        return generateService.generateFixText(errorHarness, errorMessage, 1.0f, 1000)
+                .map(response -> {
+                    model.addAttribute("fixedResult", response.getHarness());
+                    return "main";
+                })
+                .onErrorResume(e -> Mono.just("error")); // Handle errors if necessary
+    }
+
+
+
+
 }

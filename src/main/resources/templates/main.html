@@ -9,21 +9,44 @@
 <body>
 
 <form action="/submit" method="post">
-    <label for="program">Program:</label>
-    <input type="text" id="program" name="program" required>
-    <br>
-    <label for="method">Method:</label>
-    <input type="text" id="method" name="method" required>
-    <br>
-    <label for="version">Version:</label>
-    <input type="text" id="version" name="version" required>
-    <br>
-    <button type="submit">Submit</button>
+    <div th:unless="${result} or ${fixedResult}">
+        <label for="program">Program:</label>
+        <input type="text" id="program" name="program" style="width:1000px;height:200px;" required>
+        <br>
+        <label for="method">Method:</label>
+        <input type="text" id="method" name="method" required>
+        <br>
+        <label for="version">Version:</label>
+        <input type="text" id="version" name="version" required>
+        <br>
+        <button type="submit">Submit</button>
+    </div>
 </form>
 
 <div th:if="${result}">
     <h2>Result:</h2>
     <pre th:text="${result}"></pre>
+</div>
+
+<br>
+<br>
+
+<div th:if="${result} or ${fixedResult}">
+    <form action="/submit-fix" method="post">
+        <label for="errorHarness">Error Harness:</label>
+        <input type="text" id="errorHarness" name="errorHarness" style="width:1000px;height:200px;" required>
+        <br>
+        <label for="errorMessage">Error Message:</label>
+        <input type="text" id="errorMessage" name="errorMessage" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+
+    <div th:if="${fixedResult}">
+        <h2>Fixed Result:</h2>
+        <pre th:text="${fixedResult}"></pre>
+    </div>
 </div>
 
 </body>

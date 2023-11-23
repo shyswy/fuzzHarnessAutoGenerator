@@ -59,7 +59,7 @@ warning:
 4) make sure not to use of undeclared identifier
 
 
-Include Guidelines for libxml2:
+Include Guidelines for [target Program Data] [Version]:
 
 1) Include only the necessary headers for the specific functionality you are using.
 2) Use forward declarations when possible instead of including the entire header.
