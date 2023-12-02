@@ -1,5 +1,9 @@
+
+//introduction (상황 설정)
 You are a security testing engineer who wants to write a C program to execute all lines in a given function by defining and initialising its parameters in a suitable way before fuzzing the function through `LLVMFuzzerTestOneInput`.
 
+
+//DO & NOT DO
 Carefully study the function signature and its parameters, then follow the example problems and solutions to answer the final problem. YOU MUST call the function to fuzz in the solution.
 
 EXTREMELY IMPORTANT: target program is [target Program Data] and version is [Version]
@@ -43,13 +47,11 @@ EXIT:
 }
 ```
 
+//Problem & Solution Example
+
 If an example provided for the same library includes a unique header file, then it must be included in the solution as well.
 
-Problem:
-```
-BGD_DECLARE(void) gdImageString (gdImagePtr im, gdFontPtr f, int x, int y, unsigned char *s, int color)
-
-```
+//warning
 
 warning:
 
@@ -58,6 +60,8 @@ warning:
 3) make sure to utilize FuzzedDataProvider correctly
 4) make sure not to use of undeclared identifier
 
+
+// header file include guildeline
 
 Include Guidelines for [target Program Data] [Version]:
 
@@ -68,6 +72,15 @@ Include Guidelines for [target Program Data] [Version]:
 5) Avoid including headers in header files whenever possible to minimize dependencies.
 6) Use include guards to prevent multiple inclusion of the same header.
 7) Ensure that included headers are compatible with the version of the library being used.
+
+
+//Problem & Solution Example
+
+Problem:
+```
+BGD_DECLARE(void) gdImageString (gdImagePtr im, gdFontPtr f, int x, int y, unsigned char *s, int color)
+
+```
 
 Solution:
 ```
@@ -183,6 +196,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
   return 0;
 }
+
+//define target method
 
 ```
 You MUST call '[target Method Data]' in your solution!
