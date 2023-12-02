@@ -2,7 +2,7 @@
 
 # **목차**
 
-## 1 프로젝트 목적 및 배경
+# 1 프로젝트 목적 및 배경
 
 Fuzzing은 소프트웨어의 취약점을 찾기 위한 테스팅 기법으로, 랜덤 또는 의도적으로 조작된 입력값을 소프트웨어에 전달하여 예상치 못한 동작을 유발하는 것입니다.
 
@@ -10,7 +10,7 @@ Fuzzing은 소프트웨어의 취약점을 찾기 위한 테스팅 기법으로,
 
 Fuzzing harness를 작성하는 것은, Fuzzing 수행에 있어 중요한 과정으로, Harness가 잘 작성되지 않으면 Fuzzing이 제대로 수행되지 않거나, 소프트웨어에 손상을 입힐 수 도 있습니다. 그리고 이러한 Fuzzing Harness를 생성하는 것은 타겟 프로그램과 Fuzzing 기술, 양쪽에 대한 높은 이해도가 필요하기에 이전부터 높은 진입 장벽을 가지고 있습니다. 그러므로 저희는 이러한 어려움을 해결하기 위해, LLM을 활용하여 Fuzzing Harness를 자동 생성하는 방안에 대해 연구했습니다.
 
-## 2 프로젝트 최종 목표
+# 2 프로젝트 최종 목표
 
 프로젝트의 세부 목표는 크게 3가지입니다.
 
@@ -24,7 +24,7 @@ Fuzzing harness를 작성하는 것은, Fuzzing 수행에 있어 중요한 과�
 
 마지막으로 세번째 세부 목표 달성을 위해 저희는 GPT-API를 활용해 위 과정들을 자동화할 수 있는 프로그램을 개발했습니다. 사용자가 타겟 프로그램명, 타겟 프로그램 버전, 타겟 함수명 등 타겟 프로그램 정보를 제공하면 GPT-API를 통해 Fuzzing harness를 사용자가 제공 받아, Fuzzing을 진행할 수 있습니다.
 
-## 3 프로젝트 내용
+# 3 프로젝트 내용
 
 본격적인 프로젝트를 수행하기 전, Fuzzing에 대한 지식을 쌓기 위해 Fuzzing 101 실습을 수행했습니다. 이는 Fuzzing에 대한 기초를 배우는 데 도움이 되는 10개의 실습으로 구성되었고, 이 중 1번부터 7번 실습까지 완료하였습니다. 실습에서는 주로 AFL++이라는 Fuzzer를 사용하여 Xpdf, V8, LibTIFF 등 다양한 소프트웨어를 대상으로 취약점을 찾는 방법을 학습했습니다. 
 
@@ -38,345 +38,20 @@ Fuzzing harness를 작성하는 것은, Fuzzing 수행에 있어 중요한 과�
 
 이후 Prompt 엔지니어링을 통해 GPT가 Compile 가능한, 올바른 Fuzzing harness를 도출할 수 있도록 Prompt에 다양한 시도를 수행했습니다. 첫번째로, Fuzzing harness 코드 작성시해 DO/ Not DO 영역을 나누어 전체적인 가이드라인을 작성하고, Warning, Include GuildeLine을 작성하여 GPT 가 실수하거나, 의도를 잘못 이해할 수 있는 부분들에 대해 강조하여 표현했습니다. 그리고 해당 타겟 프로그램에 대한 몇 가지 Fuzzing harness 샘플을 제공하여 GPT가 올바르게 저희의 의도대로 Fuzzing harness를 생성하도록 가이드 했습니다. 그 결과 다양한 타겟 프로그램, 타겟 함수에 대해 제너럴하게 컴파일 가능한 Fuzzing harness를 작성하는 생성 프롬프트를 구축할 수 있었습니다. 또한 올바르지 못한 Fuzzing harness를 생성했을 시, Fix Prompt에 Build 에러 관련 정보를 넘겨 해당 Fuzzing harness를 수정하도록 구현해, 생성된 Fuzzing harness가 Compile되지 않는 상황을 대처했습니다.
 
-## 4. 프로젝트의 기술적 내용
+# 4. 프로젝트의 기술적 내용
 
 Fuzzing harness 생성을 위한 2가지 프롬프트, 즉, Generate Prompt, Fix Prompt에 대해 말씀드리겠습니다.
 
-**Generate Prompt**
+## **Generate Prompt**
 
 Generate Prompt는 LLM에게 처음으로 Fuzzing harness를 요청하기 위한 프롬프트입니다.
 
-Generate Prompt는 아래와 같은 형식을 가지고 있습니다.
+Generate Prompt를 구성하고 있는 각 부분에 대한 설명을 해드리겠습니다.
 
-```
-//introduction (상황 설정)
+### 1. **상황 설정**
 
-You are a security testing engineer who wants to write a C program to execute all lines in a given function by defining and initialising its parameters in a suitable way before fuzzing the function through `LLVMFuzzerTestOneInput`.
-
-//DO & NOT DO
-
-Carefully study the function signature and its parameters, then follow the example problems and solutions to answer the final problem. YOU MUST call the function to fuzz in the solution.
-
-EXTREMELY IMPORTANT: target program is [target Program Data] and version is [Version]
-
-Try as many variations of these inputs as possible. Do not use a random number generator such as `rand()`.
-
-All variables used MUST be declared and initialized. Carefully make sure that the variable and argument types in your code match and compiles successfully. Add type casts to make types match.
-
-Do not create new variables with the same names as existing variables.
-
-WRONG:
-
-```
-
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-
-void* data = Foo();
-
-}
-
-```
-
-EXTREMELY IMPORTANT: If you write code using `goto`, you MUST MUST also declare all variables BEFORE the `goto`. Never introduce new variables after the `goto`.
-
-WRONG:
-
-```
-
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-
-int a = bar();
-
-if (!some_function()) goto EXIT;
-
-Foo b = target_function(data, size);
-
-int c = another_func();
-
-EXIT:
-
-return 0;
-
-}
-
-```
-
-CORRECT:
-
-```
-
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-
-int a = bar();
-
-Foo b;
-
-int c;
-
-if (!some_function()) goto EXIT;
-
-b = target_function(data, size);
-
-c = another_func()
-
-EXIT:
-
-return 0;
-
-}
-
-```
-
-//warning
-
-warning:
-
-1) do not include the deprecated method
-
-2) carefully Check if the header file that includes the newly added method is correctly included.
-
-3) make sure to utilize FuzzedDataProvider correctly
-
-4) make sure not to use of undeclared identifier
-
-// header file include guildeline
-
-Include Guidelines for [target Program Data] [Version]:
-
-1) Include only the necessary headers for the specific functionality you are using.
-
-2) Use forward declarations when possible instead of including the entire header.
-
-3) Prioritize including header files from the standard library over third-party libraries.
-
-4) Group related includes together for better organization.
-
-5) Avoid including headers in header files whenever possible to minimize dependencies.
-
-6) Use include guards to prevent multiple inclusion of the same header.
-
-7) Ensure that included headers are compatible with the version of the library being used.
-
-//Problem & Solution Example
-
-If an example provided for the same library includes a unique header file, then it must be included in the solution as well.
-
-Problem:
-
-```
-
-BGD_DECLARE(void) gdImageString (gdImagePtr im, gdFontPtr f, int x, int y, unsigned char *s, int color)
-
-```
-
-Solution:
-
-```
-
-#include <fuzzer/FuzzedDataProvider.h>
-
-#include <cstddef>
-
-#include <cstdint>
-
-#include <cstdlib>
-
-#include <string>
-
-#include "gd.h"
-
-#include "gdfontg.h"
-
-#include "gdfontl.h"
-
-#include "gdfontmb.h"
-
-#include "gdfonts.h"
-
-#include "gdfontt.h"
-
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-
-FuzzedDataProvider stream(data, size);
-
-const uint8_t slate_width = stream.ConsumeIntegral<uint8_t>();
-
-const uint8_t slate_height = stream.ConsumeIntegral<uint8_t>();
-
-gdImagePtr slate_image = gdImageCreateTrueColor(slate_width, slate_height);
-
-if (slate_image == nullptr) {
-
-return 0;
-
-}
-
-const int x_position = stream.ConsumeIntegral<int>();
-
-const int y_position = stream.ConsumeIntegral<int>();
-
-const int text_color = stream.ConsumeIntegral<int>();
-
-const gdFontPtr font_ptr = stream.PickValueInArray(
-
-{gdFontGetGiant(), gdFontGetLarge(), gdFontGetMediumBold(),
-
-gdFontGetSmall(), gdFontGetTiny()});
-
-const std::string text = stream.ConsumeRemainingBytesAsString();
-
-gdImageString(slate_image, font_ptr, x_position, y_position,
-
-reinterpret_cast<uint8_t*>(const_cast<char*>(text.c_str())),
-
-text_color);
-
-gdImageDestroy(slate_image);
-
-return 0;
-
-}
-
-```
-
-Problem:
-
-```
-
-MPG123_EXPORT int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done )
-
-```
-
-Solution:
-
-```
-
-#include <fuzzer/FuzzedDataProvider.h>
-
-#include <cstddef>
-
-#include <cstdint>
-
-#include <cstdio>
-
-#include <cstdlib>
-
-#include <vector>
-
-#include "mpg123.h"
-
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-
-static bool initialized = false;
-
-if (!initialized) {
-
-mpg123_init();
-
-initialized = true;
-
-}
-
-int ret;
-
-mpg123_handle* handle = mpg123_new(nullptr, &ret);
-
-if (handle == nullptr) {
-
-return 0;
-
-}
-
-ret = mpg123_param(handle, MPG123_ADD_FLAGS, MPG123_QUIET, 0.);
-
-if(ret == MPG123_OK)
-
-ret = mpg123_open_feed(handle);
-
-if (ret != MPG123_OK) {
-
-mpg123_delete(handle);
-
-return 0;
-
-}
-
-std::vector<uint8_t> output_buffer(mpg123_outblock(handle));
-
-size_t output_written = 0;
-
-// Initially, start by feeding the decoder more data.
-
-int decode_ret = MPG123_NEED_MORE;
-
-FuzzedDataProvider provider(data, size);
-
-while ((decode_ret != MPG123_ERR)) {
-
-if (decode_ret == MPG123_NEED_MORE) {
-
-if (provider.remaining_bytes() == 0
-
-|| mpg123_tellframe(handle) > 10000
-
-|| mpg123_tell_stream(handle) > 1<<20) {
-
-break;
-
-}
-
-const size_t next_size = provider.ConsumeIntegralInRange<size_t>(
-
-0,
-
-provider.remaining_bytes());
-
-auto next_input = provider.ConsumeBytes<unsigned char>(next_size);
-
-decode_ret = mpg123_decode(handle, next_input.data(), next_input.size(),
-
-output_buffer.data(), output_buffer.size(),
-
-&output_written);
-
-} else if (decode_ret != MPG123_ERR && decode_ret != MPG123_NEED_MORE) {
-
-decode_ret = mpg123_decode(handle, nullptr, 0, output_buffer.data(),
-
-output_buffer.size(), &output_written);
-
-} else {
-
-// Unhandled mpg123_decode return value.
-
-abort();
-
-}
-
-}
-
-mpg123_delete(handle);
-
-return 0;
-
-}
-
-//define target method
-
-```
-
-You MUST call '[target Method Data]' in your solution!
-
-Problem:
-
-```
-
-[target Method Data]
-
-Solution:
-```
-
-Generate Prompt의 각 부분에 대한 설명을 해드리겠습니다.
+- LLM에게 역할을 부여해주고, 현재 무슨 상황인지 설명해줍니다.
+- LLVMFuzzerTestOneInput이라는 함수를 통해 Fuzzing harness를 요청합니다.
 
 ```
 //introduction (상황 설정)
@@ -386,10 +61,11 @@ in a given function by defining and initialising its parameters in a suitable wa
 fuzzing the function through `LLVMFuzzerTestOneInput`.
 ```
 
-### 1. **상황 설정**
+### 2. **DO & NOT DO**
 
-- LLM에게 역할을 부여해주고, 현재 무슨 상황인지 설명해줍니다.
-- LLVMFuzzerTestOneInput이라는 함수를 통해 Fuzzing harness를 요청합니다.
+- Fuzzing harness 생성 시, 주의사항에 대해 LLM에게 설명해주는 부분입니다.
+- 사용하면 안되는 함수, 사용하면 안되는 문법 등에 대한 정보를 제공해줍니다.
+- 위 프롬프트에서 [target Program Data]에는 타겟 프로그램 이름이 들어가고, [Version]에는 해당 타겟 프로그램의 버전이 입력됩니다.
 
 ```
 //DO & NOT DO
@@ -467,11 +143,11 @@ return 0;
 ```
 ```
 
-### 2. **DO & NOT DO**
+### 3. **Warning / Include Guideline**
 
-- Fuzzing harness 생성 시, 주의사항에 대해 LLM에게 설명해주는 부분입니다.
-- 사용하면 안되는 함수, 사용하면 안되는 문법 등에 대한 정보를 제공해줍니다.
-- 위 프롬프트에서 [target Program Data]에는 타겟 프로그램 이름이 들어가고, [Version]에는 해당 타겟 프로그램의 버전이 입력됩니다.
+- Fuzzing harness 생성 시, 컴파일 되지 않는 harness 생성의 빈도를 낮추기 위해, 넣어준 경고문과 가이드라인입니다.
+- 좀 더 재네럴하게 타겟 프로그램에 대한 Fuzzing harness를 받을 수 있도록 넣어주었습니다.
+- Deprecated된 함수를 사용하지 말아라, 사용 가능한 헤더파일만 사용해라 등의 명령을 넣어줘서 LLM이 보다 정확한 Fuzzing harness 생성을 할 수 있도록 도와주는 부분입니다.
 
 ```
 //warning
@@ -505,11 +181,10 @@ Include Guidelines for [target Program Data] [Version]:
 7) Ensure that included headers are compatible with the version of the library being used.
 ```
 
-### 3. **Warning / Include Guideline**
+### 4. **Problem & Solution Example**
 
-- Fuzzing harness 생성 시, 컴파일 되지 않는 harness 생성의 빈도를 낮추기 위해, 넣어준 경고문과 가이드라인입니다.
-- 좀 더 재네럴하게 타겟 프로그램에 대한 Fuzzing harness를 받을 수 있도록 넣어주었습니다.
-- Deprecated된 함수를 사용하지 말아라, 사용 가능한 헤더파일만 사용해라 등의 명령을 넣어줘서 LLM이 보다 정확한 Fuzzing harness 생성을 할 수 있도록 도와주는 부분입니다.
+- Fuzzing harness 생성 시, LLM이 보다 효과적으로 harness를 생성하도록 하기 위해, 특정 함수에 대한 Fuzzing harness Example을 제공해주는 부분입니다.
+- Example은 Google OSS-Fuzz에서 Fuzzing harness 생성 시 사용한 예시를 인용하는 방식으로 제공해주었습니다.
 
 ```
 //Problem & Solution Example
@@ -717,9 +392,11 @@ return 0;
 }
 ```
 
-1. **Problem & Solution Example**
-- Fuzzing harness 생성 시, LLM이 보다 효과적으로 harness를 생성하도록 하기 위해, 특정 함수에 대한 Fuzzing harness Example을 제공해주는 부분입니다.
-- Example은 Google OSS-Fuzz에서 Fuzzing harness 생성 시 사용한 예시를 인용하는 방식으로 제공해주었습니다.
+### 5. **Define Target Method**
+
+- 최종적으로 타겟으로 하고 싶은 메소드에 대한 데이터를 제공해주는 부분입니다.
+- 타겟 메소드의 선언(함수명, 파라미터명, 타입 등)을 [target Method Data]에 입력합니다.
+- Solution: 부분을 통해 LLM이 해당 타겟 메소드에 대한 Fuzzing harness를 제공해줍니다.
 
 ```
 //define target method
@@ -737,13 +414,7 @@ Problem:
 Solution:
 ```
 
-### 4. **Define Target Method**
-
-- 최종적으로 타겟으로 하고 싶은 메소드에 대한 데이터를 제공해주는 부분입니다.
-- 타겟 메소드의 선언(함수명, 파라미터명, 타입 등)을 [target Method Data]에 입력합니다.
-- Solution: 부분을 통해 LLM이 해당 타겟 메소드에 대한 Fuzzing harness를 제공해줍니다.
-
-**Fix Prompt**
+## **Fix Prompt**
 
 Fix Prompt는 LLM에게 Generate Prompt를 통해 제공받은 Fuzzing harness가 잘 빌드되지 않을 때, 해당 빌드 오류를 수정하기 위한 프롬프트입니다.
 
@@ -771,6 +442,11 @@ Fixed code:
 
 Fix Prompt의 각 부분에 대한 설명을 해드리겠습니다.
 
+### 1. **상황 설정 및 주의사항 제시**
+
+- LLM에게 역할을 부여해주고, 현재 무슨 상황인지 설명해줍니다.
+- Fuzzing harness에 대한 빌드 오류를 해결하라는 명령을 내려줍니다.
+
 ```
 Given the following C program and its build error message, fix the code without affecting its functionality. First explain the reason, then output the whole fixed code.
 
@@ -779,10 +455,13 @@ If a function is missing, fix it by including the related libraries.
 And show the fixed code as code with line breaks
 ```
 
-### 5. **상황 설정 및 주의사항 제시**
+### 
 
-- LLM에게 역할을 부여해주고, 현재 무슨 상황인지 설명해줍니다.
-- Fuzzing harness에 대한 빌드 오류를 해결하라는 명령을 내려줍니다.
+### 2. **Error Harness 및 Error Message 제시**
+
+- 현재 오류가 발생한 Fuzzing harness 코드 전체를 [Error Message]에 제공해줍니다.
+- 발생한 빌드 오류 메시지를 [Build Error Message]에 제공해줍니다.
+- Fixed code: 부분을 통해 LLM이 빌드 오류를 수정한 새로운 Fuzzing harness를 제공해줄 것 입니다.
 
 ```
 Code:
@@ -798,12 +477,6 @@ Build error message:
 Fixed code:
 ```
 
-### 6. **Error Harness 및 Error Message 제시**
-
-- 현재 오류가 발생한 Fuzzing harness 코드 전체를 [Error Message]에 제공해줍니다.
-- 발생한 빌드 오류 메시지를 [Build Error Message]에 제공해줍니다.
-- Fixed code: 부분을 통해 LLM이 빌드 오류를 수정한 새로운 Fuzzing harness를 제공해줄 것 입니다.
-
 다음으로는 Fuzzing 과정, 그리고 자동화 부분에 사용한 기술에 대해 설명해 드리겠습니다.
 
 ## **웹 프로젝트 구현**
@@ -818,13 +491,13 @@ Fixed code:
 
 GCP를 통해 가상화된 Linux 환경을 사용하여 Fuzzing을 수행했습니다. 동시에 여러 Fuzzing harness를 테스트하기 위해 Tmux를 통해 다수의 세션에서 Fuzzing을 수행하였고, 다수의 세션에서 돌아가는 Fuzzing이 원활하게 수행되도록 CPU 코어 개수를 16개로 설정했습니다.
 
-## Trouble shooting
+# Trouble shooting
 
 LLM(GPT)이 Compile되는 Harness 코드를 생성하도록 프롬프트를 구성하는 것에 어려움이 있었습니다. GPT의 경우 블랙박스 영역이 넓기에 오픈소스로 남겨져 있는 코드 중, 타겟 프로그램과 관련없는 코드를 인식하여 사용할 수 없는 메소드를 사용하거나, 타겟 프로그램의 헤더파일을 올바르게 가져오지 못하는 문제가 발생했습니다. 이를 해결하고자 헤더 파일 Include에 대한 별도의 가이드 라인을 작성하여 관련 문제를 최소화할 수 있었습니다.
 
 또한 버전의 진화로 인해 deprecated된 메소드 역시 사용했기에 관련 가이드 라인, 그리고 Warning문을 작성하는 것으로 관련 문제를 최소화할 수 있었습니다.
 
-## **성과**
+# **성과**
 
 - 프로젝트를 통해 프로그램명, 버전, 타겟 함수만 입력하면 제너럴하게 Compile 가능한 Harness Code를 자동으로 생성할 수 있었습니다.
 - 생성된 Harness를 통한 Fuzzing 내에서 코드 커버리지 지표와 관련된 Map density가 향상되었습니다.
