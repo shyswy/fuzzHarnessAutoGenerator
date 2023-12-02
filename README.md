@@ -473,7 +473,6 @@ Fixed code:
 
 자동 생성을 위해 요청할 Prompt(Generate Prompt, Fix Prompt)를 txt파일로 작성후, 해당 파일을 Read하여 GPT4.0 API에 Webflux의 WebClient기반 비동기 요청을 보내고, 리턴된 정보를 Reactive하게 수신하는 로직을 통해 NetWork I/O Cost를 완화했습니다.
 
-다음으로는 해당 기술 구현에 있어서 어려웠던 점에 대해 설명해 드리겠습니다.
 
 **사용 기술 스택: GCP, Linux, Java, Spring, GPT-API, AFL++**
 
