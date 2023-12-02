@@ -1,7 +1,7 @@
 # README
 
 # 졸업 프로젝트 수행일지
-https://www.notion.so/shyswy/FuzzHarnessAutoGenerator-e9b6ca6b84854186a4f6b10bcc6aff7b
+[https://www.notion.so/shyswy/FuzzHarnessAutoGenerator-e9b6ca6b84854186a4f6b10bcc6aff7b](https://shyswy.notion.site/FuzzHarnessAutoGenerator-e9b6ca6b84854186a4f6b10bcc6aff7b?pvs=4)
 
 # 1 프로젝트 목적 및 배경
 
