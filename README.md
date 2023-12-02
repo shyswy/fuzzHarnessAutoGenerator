@@ -91,6 +91,9 @@ void* data = Foo();
 }
 
 ```
+```
+
+```
 
 EXTREMELY IMPORTANT: If you write code using `goto`, you MUST MUST also declare all variables BEFORE the `goto`. Never introduce new variables after the `goto`.
 
@@ -268,7 +271,9 @@ return 0;
 }
 
 ```
+```
 
+```
 Problem:
 
 ```
