@@ -82,7 +82,6 @@ Do not create new variables with the same names as existing variables.
 
 WRONG:
 
-```
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
@@ -90,16 +89,13 @@ void* data = Foo();
 
 }
 
-```
-```
 
-```
 
 EXTREMELY IMPORTANT: If you write code using `goto`, you MUST MUST also declare all variables BEFORE the `goto`. Never introduce new variables after the `goto`.
 
 WRONG:
 
-```
+
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
@@ -117,11 +113,11 @@ return 0;
 
 }
 
-```
+
 
 CORRECT:
 
-```
+
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
@@ -142,8 +138,8 @@ EXIT:
 return 0;
 
 }
+...
 
-```
 ```
 
 ### 3. **Warning / Include Guideline**
@@ -196,15 +192,15 @@ If an example provided for the same library includes a unique header file, then 
 
 Problem:
 
-```
+...
 
 BGD_DECLARE(void) gdImageString (gdImagePtr im, gdFontPtr f, int x, int y, unsigned char *s, int color)
 
-```
+...
 
 Solution:
 
-```
+...
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -270,21 +266,13 @@ return 0;
 
 }
 
-```
-```
 
-```
+
 Problem:
-
-```
 
 MPG123_EXPORT int mpg123_decode(mpg123_handle *mh, const unsigned char *inmemory, size_t inmemsize, unsigned char *outmemory, size_t outmemsize, size_t *done )
 
-```
-
 Solution:
-
-```
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -406,13 +394,11 @@ return 0;
 ```
 //define target method
 
-```
 
 You MUST call '[target Method Data]' in your solution!
 
 Problem:
 
-```
 
 [target Method Data]
 
@@ -436,7 +422,6 @@ Code:
 
 [Error Harness]
 
-```
 
 Build error message:
 
@@ -472,8 +457,6 @@ And show the fixed code as code with line breaks
 Code:
 
 [Error Harness]
-
-```
 
 Build error message:
 
